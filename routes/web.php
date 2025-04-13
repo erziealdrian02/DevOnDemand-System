@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeSeconController;
+use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -35,6 +37,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/employeesSec/{employeeSec}/edit', [EmployeeSeconController::class, 'edit'])->name('employeeSec.edit');
     Route::put('/employeesSec/{employeeSec}', [EmployeeSeconController::class, 'update'])->name('employeeSec.update');
     Route::delete('/employeesSec/{employeeSec}', [EmployeeSeconController::class, 'destroy'])->name('employeeSec.destroy');
+
+    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+
+    Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
+    Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
+    Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
 });
 
 require __DIR__.'/settings.php';

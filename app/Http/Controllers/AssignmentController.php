@@ -5,69 +5,96 @@ namespace App\Http\Controllers;
 use App\Models\Assignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class AssignmentController extends Controller
 {
-    public function index()
-    {
-        return Assignment::with(['project', 'employee'])->get();
-    }
-
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'project_id' => 'required|exists:projects,id',
-            'employee_id' => 'required|exists:employees,id',
+            'employee_id' => 'required|exists:employee_seconds,id',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'attachment' => 'nullable|file|mimes:pdf|max:512', // max in KB
             'notes' => 'nullable|string',
+            'attachment' => 'nullable|file|max:10240', // 10MB max file size
         ]);
 
-        $data['id'] = (string) Str::uuid();
-
-        if ($request->hasFile('attachment')) {
-            $data['attachment'] = $request->file('attachment')->store('attachments');
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
         }
 
-        return Assignment::create($data);
+        $data = $validator->validated();
+        $data['id'] = Str::uuid();
+        
+        // Handle file upload if present
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $path = $file->store('attachments', 'public');
+            $data['attachment'] = Storage::url($path);
+        }
+
+        Assignment::create($data);
+
+        return redirect()->route('projects.index')->with('success', 'Assignment created successfully.');
     }
 
-    public function show(Assignment $assignment)
-    {
-        return $assignment->load(['project', 'employee']);
-    }
-
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, Assignment $assignment)
     {
-        $data = $request->validate([
-            'project_id' => 'sometimes|required|exists:projects,id',
-            'employee_id' => 'sometimes|required|exists:employees,id',
-            'start_date' => 'sometimes|required|date',
+        $validator = Validator::make($request->all(), [
+            'employee_id' => 'required|exists:employee_seconds,id',
+            'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'attachment' => 'nullable|file|mimes:pdf|max:512',
             'notes' => 'nullable|string',
+            'attachment' => 'nullable|file|max:10240', // 10MB max file size
         ]);
 
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $data = $validator->validated();
+
+        // Handle file upload if present
         if ($request->hasFile('attachment')) {
+            // Delete old file if exists
             if ($assignment->attachment) {
-                Storage::delete($assignment->attachment);
+                $oldPath = str_replace('/storage/', '', $assignment->attachment);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
             }
-            $data['attachment'] = $request->file('attachment')->store('attachments');
+            
+            $file = $request->file('attachment');
+            $path = $file->store('attachments', 'public');
+            $data['attachment'] = Storage::url($path);
         }
 
         $assignment->update($data);
-        return $assignment;
+
+        return redirect()->route('projects.index')->with('success', 'Assignment updated successfully.');
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Assignment $assignment)
     {
+        // Delete attachment if exists
         if ($assignment->attachment) {
-            Storage::delete($assignment->attachment);
+            $path = str_replace('/storage/', '', $assignment->attachment);
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
         }
 
         $assignment->delete();
-        return response()->noContent();
+
+        return redirect()->route('projects.index')->with('success', 'Assignment has been removed.');
     }
 }

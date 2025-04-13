@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Briefcase, Folder, LayoutGrid, UsersRound } from 'lucide-vue-next';
+import { Briefcase, FileUser, Folder, LayoutGrid, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -13,11 +13,6 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
-    },
-    {
-        title: 'Employees',
-        href: '/employees',
-        icon: UsersRound,
     },
     {
         title: 'Client',
@@ -34,11 +29,6 @@ const mainNavItems: NavItem[] = [
         href: '/projects', // Perbaiki href untuk Projects
         icon: Folder, // Icon Folder untuk merepresentasikan Projects
     },
-    {
-        title: 'Assignments',
-        href: '/assignments', // Perbaiki href dan eja "Asignments" menjadi "Assignments"
-        icon: BookOpen, // Icon BookOpen untuk merepresentasikan daftar tugas
-    },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -52,6 +42,11 @@ const footerNavItems: NavItem[] = [
     //     href: 'https://laravel.com/docs/starter-kits',
     //     icon: BookOpen,
     // },
+    {
+        title: 'Users Management',
+        href: 'https://github.com/laravel/vue-starter-kit',
+        icon: FileUser,
+    },
 ];
 </script>
 
