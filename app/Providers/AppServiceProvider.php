@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Str;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Database\Eloquent\Model;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,8 +19,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-        //
-    }
+    public function boot()
+{
+    Model::creating(function ($model) {
+        if (!$model->getKey()) {
+            $model->{$model->getKeyName()} = (string) Str::uuid();
+        }
+    });
+}
 }
