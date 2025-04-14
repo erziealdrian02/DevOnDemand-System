@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Briefcase, FileUser, Folder, LayoutGrid, UsersRound } from 'lucide-vue-next';
+import { Briefcase, FileUser, Folder, LayoutGrid, ScrollText, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const page = usePage<{ props: { auth: { user: { role_id: number } } } }>();
@@ -35,7 +35,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Activity Logs',
         href: '/activitylog', // Perbaiki href untuk Projects
-        icon: Folder, // Icon Folder untuk merepresentasikan Projects
+        icon: ScrollText, // Icon Folder untuk merepresentasikan Projects
     },
 ];
 
