@@ -15,8 +15,9 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('project_id')->constrained('projects')->cascadeOnDelete();
             $table->foreignUuid('employee_id')->constrained('employee_seconds')->cascadeOnDelete();
-            $table->dateTime('start_date');
-            $table->dateTime('end_date')->nullable();
+            $table->string('ssignments_id')->unique();
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
             $table->string('attachment')->nullable(); // PDF upload path
             $table->text('notes')->nullable();
             $table->timestamps();

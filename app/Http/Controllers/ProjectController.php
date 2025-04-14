@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ClientsExport;
+use App\Exports\ProjectSecondExport;
+use App\Exports\ProjectsExport;
 use App\Models\Assignment;
 use App\Models\Project;
 use App\Models\Client;
@@ -10,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProjectController extends Controller
 {
@@ -202,5 +206,10 @@ class ProjectController extends Controller
 
         return redirect()->route('projects.index')
             ->with('success', 'Project Deleted successfully!');
+    }
+
+    public function export()
+    {
+        return Excel::download(new ProjectSecondExport, 'project.xlsx');
     }
 }

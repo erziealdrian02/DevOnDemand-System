@@ -31,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/clients/{client}/edit', [ClientController::class, 'edit'])->name('client.edit');
     Route::put('/clients/{client}', [ClientController::class, 'update'])->name('client.update');
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('client.destroy');
-    Route::get('/clients/print', [ClientController::class, 'export'])->name('clients.export');
+    Route::get('/clients/export', [ClientController::class, 'export'])->name('clients.export');
 
     Route::get('/employeesSec', [EmployeeSeconController::class, 'index'])->name('employeeSec.index');
     Route::get('/employeesSec/create', [EmployeeSeconController::class, 'create'])->name('employeeSec.create');
@@ -39,7 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/employeesSec/{employeeSec}/edit', [EmployeeSeconController::class, 'edit'])->name('employeeSec.edit');
     Route::put('/employeesSec/{employeeSec}', [EmployeeSeconController::class, 'update'])->name('employeeSec.update');
     Route::delete('/employeesSec/{employeeSec}', [EmployeeSeconController::class, 'destroy'])->name('employeeSec.destroy');
-    Route::get('/employeesSec/print', [EmployeeSeconController::class, 'export'])->name('employeeSec.export');
+    Route::get('/employeesSec/export', [EmployeeSeconController::class, 'export'])->name('employeeSec.export');
 
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
     Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+    Route::get('/projects/export', [ProjectController::class, 'export'])->name('projects.export');
 
     Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
     Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');

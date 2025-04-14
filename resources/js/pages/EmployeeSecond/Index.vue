@@ -177,7 +177,7 @@ const deleteEmployee = (id: string) => {
                     </Button>
 
                     <Button as-child size="sm" class="bg-green-500 text-white hover:bg-green-700">
-                        <Link href="/employeesSec/print" target="_blank"> <Printer class="mr-1" /> Print </Link>
+                        <Link href="/employeesSec/export" target="_blank"> <Printer class="mr-1" /> Print </Link>
                     </Button>
                 </div>
                 <div class="relative">

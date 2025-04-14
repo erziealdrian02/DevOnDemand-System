@@ -300,7 +300,7 @@ const deleteClient = async (id: string) => {
                     </Button>
 
                     <Button as-child size="sm" class="bg-green-500 text-white hover:bg-green-700">
-                        <Link href="/clients/print" target="_blank"> <Printer class="mr-1" /> Print </Link>
+                        <Link href="/clients/export" target="_blank"> <Printer class="mr-1" /> Print </Link>
                     </Button>
                 </div>
 
