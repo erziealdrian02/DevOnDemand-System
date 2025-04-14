@@ -14,7 +14,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 interface ActivityLog {
     id: string;
     type: 'Employee' | 'Client' | 'Project' | 'Assignment' | 'User';
-    action_type: 'Create' | 'Update' | 'Delete';
+    action_type: 'Create' | 'Update' | 'Delete' | 'Import' | 'Export';
     user_id: number;
     user?: {
         id: number;
@@ -94,6 +94,8 @@ const getActionBadgeClass = (actionType: string) => {
     if (actionType === 'Create') return 'bg-green-500';
     if (actionType === 'Update') return 'bg-blue-500';
     if (actionType === 'Delete') return 'bg-red-500';
+    if (actionType === 'Import') return 'bg-yellow-500';
+    if (actionType === 'Export') return 'bg-purple-500';
     return 'bg-gray-500';
 };
 
@@ -447,6 +449,8 @@ const relatedLogsStatusText = computed(() => {
     const parts = [];
     if (operations.Create) parts.push(`${operations.Create} create`);
     if (operations.Update) parts.push(`${operations.Update} update`);
+    if (operations.Import) parts.push(`${operations.Import} import`);
+    if (operations.Export) parts.push(`${operations.Export} Export`);
     if (operations.Delete) parts.push(`${operations.Delete} delete`);
 
     return `Found ${relatedLogs.value.length} related activities (${parts.join(', ')})`;
@@ -542,6 +546,8 @@ const formatHeader = (key: string) => {
                                             'rounded-full px-3 py-1 text-white': true,
                                             'bg-green-500': log.action_type === 'Create',
                                             'bg-blue-500': log.action_type === 'Update',
+                                            'bg-yellow-600': log.action_type === 'Import',
+                                            'bg-purple-500': log.action_type === 'Export',
                                             'bg-red-500': log.action_type === 'Delete',
                                         }"
                                         >{{ log.action_type }}</span

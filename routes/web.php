@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/clients/{client}', [ClientController::class, 'update'])->name('client.update');
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('client.destroy');
     Route::get('/clients/export', [ClientController::class, 'export'])->name('clients.export');
+    Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
 
     Route::get('/employeesSec', [EmployeeSeconController::class, 'index'])->name('employeeSec.index');
     Route::get('/employeesSec/create', [EmployeeSeconController::class, 'create'])->name('employeeSec.create');
@@ -44,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/employeesSec/{employeeSec}', [EmployeeSeconController::class, 'update'])->name('employeeSec.update');
     Route::delete('/employeesSec/{employeeSec}', [EmployeeSeconController::class, 'destroy'])->name('employeeSec.destroy');
     Route::get('/employeesSec/export', [EmployeeSeconController::class, 'export'])->name('employeeSec.export');
+    Route::post('/employeesSec/import', [EmployeeSeconController::class, 'import'])->name('employeeSec.import');
 
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
