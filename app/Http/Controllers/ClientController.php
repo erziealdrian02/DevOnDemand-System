@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
+use App\Exports\ClientsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ClientController extends Controller
 {
@@ -71,4 +73,10 @@ class ClientController extends Controller
         return redirect()->route('client.index')
             ->with('success', 'Client Deteled successfully!');
     }
+
+    public function export()
+    {
+        return Excel::download(new ClientsExport, 'clients.xlsx');
+    }
+
 }

@@ -5,7 +5,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ChevronLeft, ChevronRight, CirclePlus, Pencil, Search, Trash } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, CirclePlus, Pencil, Printer, Search, Trash } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import { computed, onMounted, ref } from 'vue';
 
@@ -171,9 +171,15 @@ const deleteEmployee = (id: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-4 rounded-xl p-4">
             <div class="flex items-center justify-between">
-                <Button as-child size="sm" class="bg-indigo-500 text-white hover:bg-indigo-700">
-                    <Link href="/employeesSec/create"> <CirclePlus class="mr-1" /> Create </Link>
-                </Button>
+                <div class="flex items-center gap-2">
+                    <Button as-child size="sm" class="bg-indigo-500 text-white hover:bg-indigo-700">
+                        <Link href="/employeesSec/create"> <CirclePlus class="mr-1" /> Create </Link>
+                    </Button>
+
+                    <Button as-child size="sm" class="bg-green-500 text-white hover:bg-green-700">
+                        <Link href="/employeesSec/print" target="_blank"> <Printer class="mr-1" /> Print </Link>
+                    </Button>
+                </div>
                 <div class="relative">
                     <Search class="absolute left-2 top-2 h-4 w-4 text-gray-500" />
                     <Input v-model="searchTerm" placeholder="Search..." class="w-64 pl-8" />

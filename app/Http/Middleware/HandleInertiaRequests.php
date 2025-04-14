@@ -43,7 +43,15 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    // Data dasar untuk komponen UserInfo
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    // Data role untuk sidebar
+                    'role_id' => $request->user()->role_id,
+                    'role' => $request->user()->role,
+                ] : null,
             ],
         ];
     }

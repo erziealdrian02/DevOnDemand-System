@@ -5,7 +5,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ChevronLeft, ChevronRight, CirclePlus, Pencil, Search, Trash } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, CirclePlus, Pencil, Printer, Search, Trash } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 // Import SweetAlert2
 import Swal from 'sweetalert2';
@@ -294,9 +294,15 @@ const deleteClient = async (id: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <div class="flex justify-between">
-                <Button as-child size="sm" class="bg-indigo-500 text-white hover:bg-indigo-700">
-                    <Link href="/clients/create"> <CirclePlus class="mr-1" /> Create </Link>
-                </Button>
+                <div class="flex items-center gap-2">
+                    <Button as-child size="sm" class="bg-indigo-500 text-white hover:bg-indigo-700">
+                        <Link href="/clients/create"> <CirclePlus class="mr-1" /> Create </Link>
+                    </Button>
+
+                    <Button as-child size="sm" class="bg-green-500 text-white hover:bg-green-700">
+                        <Link href="/clients/print" target="_blank"> <Printer class="mr-1" /> Print </Link>
+                    </Button>
+                </div>
 
                 <div class="flex gap-2">
                     <div class="relative">

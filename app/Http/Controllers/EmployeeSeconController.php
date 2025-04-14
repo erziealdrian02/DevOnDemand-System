@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\EmployeeSecondsExport;
 use App\Models\EmployeeSecond;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EmployeeSeconController extends Controller
 {
@@ -68,5 +70,10 @@ class EmployeeSeconController extends Controller
         
         return redirect()->route('employeeSec.index')
             ->with('success', 'Employee created successfully!');
+    }
+
+    public function export()
+    {
+        return Excel::download(new EmployeeSecondsExport, 'Employee.xlsx');
     }
 }
