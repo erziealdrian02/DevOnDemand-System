@@ -15,8 +15,7 @@ class Project extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'client_id', 'project_name', 'start_date', 'is_approved', 'settings',
-    ];
+        'client_id', 'project_name', 'start_date', 'is_approved', 'settings', 'project_id',    ];
 
     protected $casts = [
         'settings' => 'array',

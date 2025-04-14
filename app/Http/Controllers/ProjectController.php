@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\ClientsExport;
 use App\Exports\ProjectSecondExport;
-use App\Exports\ProjectsExport;
 use App\Models\Assignment;
 use App\Models\Project;
 use App\Models\Client;
 use App\Models\EmployeeSecond;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
@@ -36,7 +36,7 @@ class ProjectController extends Controller
     }
 
     public function store(Request $request)
-    {
+    {   
         // Remove the dd() call to allow the function to proceed
         $validatedData = $request->validate([
             'client_id' => 'required|exists:clients,id',
@@ -46,9 +46,24 @@ class ProjectController extends Controller
             'settings' => 'nullable',
         ]);
 
+        $client = Client::findOrFail($validatedData['client_id']);
+        $companyInitial = collect(explode(' ', strtoupper($client->company_name)))
+            ->take(2)
+            ->map(fn($word) => substr($word, 0, 1))
+            ->implode('');
+        $year = now()->format('y');
+        $projectCountThisYear = Project::whereYear('created_at', now()->year)->count() + 1;
+        $assignmentCountThisYear = Assignment::whereYear('created_at', now()->year)->count() + 1;
+        $order = str_pad($projectCountThisYear, 4, '0', STR_PAD_LEFT);
+        $orderAssignment = str_pad($assignmentCountThisYear, 4, '0', STR_PAD_LEFT);
+        $generatedProjectId = "PR{$year}{$order}{$companyInitial}";
+        $generatedAssignmentId = "ASS{$year}{$orderAssignment}";
+
         // Create a new Project, not Assignment
         $project = new Project();
-        $project->id = Str::uuid();
+        $projectId = Str::uuid();
+        $project->id = $projectId;
+        $project->project_id = $generatedProjectId;
         $project->client_id = $validatedData['client_id'];
         $project->project_name = $validatedData['project_name'];
         $project->start_date = $validatedData['start_date'];
@@ -63,6 +78,14 @@ class ProjectController extends Controller
         // Save the project
         $project->save();
 
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'type' => 'Project',
+            'action_type' => 'Create',
+            'user_id' => Auth::id(), // pastikan user login
+            'log' => $project->toArray(),
+        ]);
+
         // Handle additional items if project is approved
         if ($request->input('is_approved') == '1' && $request->has('additionalItems')) {
             $additionalItems = json_decode($request->input('additionalItems'), true);
@@ -71,7 +94,8 @@ class ProjectController extends Controller
                 // Create a new assignment
                 $assignment = new Assignment();
                 $assignment->id = Str::uuid();
-                $assignment->project_id = $project->id; // Use the saved project's ID
+                $assignment->project_id = $projectId; // Use the saved project's ID
+                $assignment->assignments_id = $generatedAssignmentId; // Use the saved project's ID
                 $assignment->employee_id = $item['employee_id'];
                 $assignment->start_date = $item['start_date'];
                 $assignment->end_date = $item['end_date'] ?? null;
@@ -87,6 +111,14 @@ class ProjectController extends Controller
                 }
                 
                 $assignment->save();
+
+                ActivityLog::create([
+                    'id' => Str::uuid(),
+                    'type' => 'Assignment',
+                    'action_type' => 'Create',
+                    'user_id' => Auth::id(), // pastikan user login
+                    'log' => $project->toArray(),
+                ]);
             }
         }
 
@@ -203,6 +235,14 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
         $project->delete();
+
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'type' => 'Project',
+            'action_type' => 'Delete',
+            'user_id' => Auth::id(), // pastikan user login
+            'log' => $project->toArray(),
+        ]);
 
         return redirect()->route('projects.index')
             ->with('success', 'Project Deleted successfully!');

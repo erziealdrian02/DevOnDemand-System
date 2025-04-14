@@ -360,7 +360,7 @@ const handleFileChange = (event: Event, itemId: number) => {
                     </div>
                     <div class="space-y-2">
                         <Label for="start_date">Start Date</Label>
-                        <Input id="start_date" v-model="form.start_date" type="datetime-local" required />
+                        <Input id="start_date" v-model="form.start_date" type="date" required />
                     </div>
                     <div class="flex items-center space-x-2 pt-4">
                         <Switch id="is_approved" v-model:checked="form.is_approved" />
@@ -410,11 +410,11 @@ const handleFileChange = (event: Event, itemId: number) => {
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div class="space-y-2">
                                 <Label :for="`start_date_${item.id}`">Start Date</Label>
-                                <Input :id="`start_date_${item.id}`" v-model="item.start_date" type="datetime-local" required />
+                                <Input :id="`start_date_${item.id}`" v-model="item.start_date" type="date" required />
                             </div>
                             <div class="space-y-2">
                                 <Label :for="`end_date_${item.id}`">End Date</Label>
-                                <Input :id="`end_date_${item.id}`" v-model="item.end_date" type="datetime-local" />
+                                <Input :id="`end_date_${item.id}`" v-model="item.end_date" type="date" />
                             </div>
                         </div>
 

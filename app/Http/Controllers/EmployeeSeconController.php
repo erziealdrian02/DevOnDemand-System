@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Exports\EmployeeSecondsExport;
 use App\Models\EmployeeSecond;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -34,7 +36,15 @@ class EmployeeSeconController extends Controller
         ]);
 
         $data['id'] = Str::uuid();
-        EmployeeSecond::create($data);
+        $employeeSec = EmployeeSecond::create($data);
+
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'type' => 'Employee',
+            'action_type' => 'Create',
+            'user_id' => Auth::id(), // pastikan user login
+            'log' => $employeeSec->toArray(),
+        ]);
 
         return redirect()->route('employeeSec.index')
             ->with('success', 'Employee created successfully!');
@@ -60,6 +70,14 @@ class EmployeeSeconController extends Controller
 
         $employeeSec->update($data);
 
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'type' => 'Employee',
+            'action_type' => 'Update',
+            'user_id' => Auth::id(), // pastikan user login
+            'log' => $employeeSec->toArray(),
+        ]);
+
         return redirect()->route('employeeSec.index')
             ->with('success', 'Employee created successfully!');
     }
@@ -67,6 +85,14 @@ class EmployeeSeconController extends Controller
     public function destroy(EmployeeSecond $employeeSec)
     {
         $employeeSec->delete();
+
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'type' => 'Employee',
+            'action_type' => 'Delete',
+            'user_id' => Auth::id(), // pastikan user login
+            'log' => $employeeSec->toArray(),
+        ]);
         
         return redirect()->route('employeeSec.index')
             ->with('success', 'Employee created successfully!');

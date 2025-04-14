@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\EmployeeController;
@@ -52,6 +53,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
     Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
     Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+
+    Route::get('/activitylog', [ActivityLogController::class, 'index'])->name('activitylog.store');
 });
 
 Route::middleware(['auth', 'verified', 'admin.only'])->group(function () {

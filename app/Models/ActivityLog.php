@@ -17,7 +17,9 @@ class ActivityLog extends Model
     // Menentukan atribut yang dapat diisi secara massal  
     protected $fillable = [  
         'id',  
-        'type',  
+        'type', 
+        'action_type',
+        'user_id', 
         'log',  
     ];  
 
@@ -35,6 +37,11 @@ class ActivityLog extends Model
                 $model->id = Str::uuid();
             }
         });
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
 }

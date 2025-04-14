@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 use App\Exports\ClientsExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -36,11 +38,20 @@ class ClientController extends Controller
         ]);
 
         $data['id'] = Str::uuid();
-        Client::create($data);
-    
+        $client = Client::create($data);
+        
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'type' => 'Client',
+            'action_type' => 'Create',
+            'user_id' => Auth::id(), // pastikan user login
+            'log' => $client->toArray(),
+        ]);
+
         return redirect()->route('client.index')
             ->with('success', 'Client created successfully!');
     }
+
 
     public function edit(Client $client)
     {
@@ -61,6 +72,14 @@ class ClientController extends Controller
         ]);
 
         $client->update($data);
+        
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'type' => 'Client',
+            'action_type' => 'Update',
+            'user_id' => Auth::id(), // pastikan user login
+            'log' => $client->toArray(),
+        ]);
 
         return redirect()->route('client.index')
             ->with('success', 'Client Edited successfully!');
@@ -69,6 +88,14 @@ class ClientController extends Controller
     public function destroy(Client $client)
     {
         $client->delete();
+
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'type' => 'Client',
+            'action_type' => 'Delete',
+            'user_id' => Auth::id(), // pastikan user login
+            'log' => $client->toArray(),
+        ]);
 
         return redirect()->route('client.index')
             ->with('success', 'Client Deteled successfully!');

@@ -32,6 +32,11 @@ const mainNavItems: NavItem[] = [
         href: '/projects', // Perbaiki href untuk Projects
         icon: Folder, // Icon Folder untuk merepresentasikan Projects
     },
+    {
+        title: 'Activity Logs',
+        href: '/activitylog', // Perbaiki href untuk Projects
+        icon: Folder, // Icon Folder untuk merepresentasikan Projects
+    },
 ];
 
 const footerNavItems: NavItem[] = [

@@ -15,7 +15,7 @@ class Assignment extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'project_id', 'employee_id', 'start_date', 'end_date', 'attachment', 'notes',
+        'project_id', 'employee_id', 'start_date', 'end_date', 'attachment', 'notes', 'assignments_id',
     ];
 
     protected $casts = [
