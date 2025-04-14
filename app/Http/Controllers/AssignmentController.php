@@ -22,11 +22,17 @@ class AssignmentController extends Controller
             'attachment' => 'nullable|file|max:10240', // 10MB max file size
         ]);
 
+        $year = now()->format('y');
+        $assignmentCountThisYear = Assignment::whereYear('created_at', now()->year)->count() + 1;
+        $orderAssignment = str_pad($assignmentCountThisYear, 4, '0', STR_PAD_LEFT);
+        $generatedAssignmentId = "ASS{$year}{$orderAssignment}";
+
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
         $data = $validator->validated();
+        $data['assignments_id'] = $generatedAssignmentId;
         $data['id'] = Str::uuid();
         
         // Handle file upload if present

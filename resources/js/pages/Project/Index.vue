@@ -390,7 +390,7 @@ const formatCurrency = (value: string | undefined) => {
                                         </Button>
                                     </TableCell>
                                     <TableCell class="font-medium">{{ project.project_name }}</TableCell>
-                                    <TableCell>{{ project.start_date }}</TableCell>
+                                    <TableCell>{{ formatDate(project.start_date) }}</TableCell>
                                     <TableCell>{{ project.settings?.lokasi ?? '-' }}</TableCell>
                                     <TableCell>{{ formatCurrency(project.settings?.cost) }}</TableCell>
                                     <TableCell>{{ project.settings?.employee_count ?? '0' }}</TableCell>
@@ -450,7 +450,7 @@ const formatCurrency = (value: string | undefined) => {
                                                             <TableCell>
                                                                 <a
                                                                     v-if="assignment.attachment"
-                                                                    :href="assignment.attachment"
+                                                                    :href="`/storage/${assignment.attachment}`"
                                                                     target="_blank"
                                                                     class="text-indigo-500 hover:underline"
                                                                 >

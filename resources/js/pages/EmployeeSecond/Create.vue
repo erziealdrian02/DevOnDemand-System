@@ -174,7 +174,7 @@ const submit = () => {
                 <!-- Modal untuk pilih skill -->
                 <div v-if="isSkillModalOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-16">
                     <div class="fixed inset-0 bg-black/50" @click="toggleSkillModal"></div>
-                    <div class="relative z-50 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                    <div class="relative z-50 w-full max-w-md rounded-lg bg-slate-800 p-6 shadow-lg">
                         <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-lg font-medium">Skills</h3>
                             <button type="button" @click="toggleSkillModal" class="rounded-full p-1 hover:bg-gray-100">
@@ -182,7 +182,7 @@ const submit = () => {
                             </button>
                         </div>
 
-                        <p class="mb-2 text-sm text-gray-600">
+                        <p class="mb-2 text-sm text-gray-200">
                             Pilih 3-10 skill terkuat kamu. Hal ini akan memungkinkan rekruter untuk lebih memahami kesesuaian kamu untuk pekerjaan
                             tersebut.
                         </p>
@@ -191,19 +191,19 @@ const submit = () => {
                             <Input id="skill-search" v-model="skillSearch" type="text" placeholder="Cari skill" class="w-full" />
                         </div>
 
-                        <p class="mb-2 text-sm font-medium text-gray-600">{{ form.skillset.length }} skill dipilih</p>
+                        <p class="mb-2 text-sm font-medium text-gray-200">{{ form.skillset.length }} skill dipilih</p>
 
                         <div class="mb-4 flex flex-wrap gap-2">
                             <div
                                 v-for="skill in form.skillset"
                                 :key="skill"
-                                class="flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm text-indigo-800"
+                                class="flex items-center rounded-full bg-indigo-800 px-3 py-1 text-sm text-indigo-200"
                             >
                                 {{ skill }}
                                 <button
                                     type="button"
                                     @click="removeSkill(skill)"
-                                    class="ml-1 rounded-full p-1 text-indigo-500 hover:bg-indigo-200 hover:text-indigo-700"
+                                    class="ml-1 rounded-full p-1 text-indigo-200 hover:bg-indigo-200 hover:text-indigo-700"
                                 >
                                     <X class="h-3 w-3" />
                                 </button>
@@ -221,7 +221,7 @@ const submit = () => {
                                         'rounded-full border px-3 py-1 text-sm',
                                         form.skillset.includes(skill)
                                             ? 'border-indigo-200 bg-indigo-100 text-indigo-800'
-                                            : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-100',
+                                            : 'border-gray-200 bg-indigo-300 text-gray-800 hover:bg-gray-100',
                                     ]"
                                 >
                                     {{ skill }}
