@@ -8,12 +8,25 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Pencil, PlusCircle, Printer, Search, Trash } from 'lucide-vue-next';
+import {
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronUp,
+    CirclePlus,
+    FolderInput,
+    FolderOutput,
+    Pencil,
+    PlusCircle,
+    Search,
+    Trash,
+} from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 interface Project {
     id: string;
+    project_id: string;
     project_name: string;
     start_date: string;
     is_approved: boolean;
@@ -24,6 +37,7 @@ interface Assignment {
     id: string;
     project_id: string;
     employee_id: string;
+    asssignment_id: string;
     start_date: string;
     end_date: string | null;
     attachment: string | null;
@@ -72,6 +86,7 @@ const assignmentForm = reactive({
     id: '',
     project_id: '',
     employee_id: '',
+    assignments_id: '',
     start_date: '',
     end_date: '',
     notes: '',
@@ -132,6 +147,7 @@ const openEditModal = (assignment: Assignment) => {
     currentProjectId.value = assignment.project_id;
     assignmentForm.id = assignment.id;
     assignmentForm.project_id = assignment.project_id;
+    assignmentForm.assignments_id = assignment.assignments_id;
     assignmentForm.employee_id = assignment.employee_id;
     assignmentForm.start_date = formatDateForInput(assignment.start_date);
     assignmentForm.end_date = formatDateForInput(assignment.end_date);
@@ -144,6 +160,7 @@ const openEditModal = (assignment: Assignment) => {
 const resetForm = () => {
     assignmentForm.id = '';
     assignmentForm.project_id = '';
+    assignmentForm.assignments_id = '';
     assignmentForm.employee_id = '';
     assignmentForm.start_date = '';
     assignmentForm.end_date = '';
@@ -224,10 +241,21 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Projects', href: '/projects' }]
 const searchTerm = ref('');
 const currentPage = ref(props.current_page || 1);
 const perPage = ref(props.per_page || 10);
-const sortField = ref<'project_name' | 'start_date' | 'lokasi' | 'is_approved'>('project_name');
+const sortField = ref<'project_name' | 'project_id' | 'start_date' | 'lokasi' | 'is_approved'>('project_name');
 const sortDirection = ref<'asc' | 'desc'>('asc');
 
 const isLoading = ref(false);
+
+const showImportModal = ref(false);
+const importFile = ref<File | null>(null);
+const isImporting = ref(false);
+const importErrors = ref<string[]>([]);
+
+const showImportAssignmentModal = ref(false);
+const assignmentImportFile = ref<File | null>(null);
+const importAssignmentErrors = ref<string[]>([]);
+const isImportingAssignments = ref(false);
+const currentProjectName = ref('');
 
 const showSuccessMessage = (message: string) => {
     Swal.fire({
@@ -302,6 +330,160 @@ const getSortIcon = (field: typeof sortField.value) => {
     return sortDirection.value === 'asc' ? '↑' : '↓';
 };
 
+// Import modal functions
+const openImportModal = () => {
+    showImportModal.value = true;
+    importFile.value = null;
+    importErrors.value = [];
+};
+
+const closeImportModal = () => {
+    showImportModal.value = false;
+    importFile.value = null;
+    importErrors.value = [];
+};
+
+const handleFileChange = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+        importFile.value = input.files[0];
+    } else {
+        importFile.value = null;
+    }
+};
+
+const submitImport = () => {
+    if (!importFile.value) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Please select a file to import',
+            icon: 'error',
+            confirmButtonColor: '#ef4444',
+        });
+        return;
+    }
+
+    isImporting.value = true;
+    importErrors.value = [];
+
+    // Create form data
+    const formData = new FormData();
+    formData.append('file', importFile.value);
+
+    // Send to server
+    router.post('/projects/import', formData, {
+        onSuccess: () => {
+            isImporting.value = false;
+            closeImportModal();
+            Swal.fire({
+                title: 'Success!',
+                text: 'Projects imported successfully',
+                icon: 'success',
+                confirmButtonColor: '#6366f1',
+            });
+            // Refresh the page to show updated projects
+            router.visit('/projects', { replace: true });
+        },
+        onError: (errors) => {
+            isImporting.value = false;
+
+            if (errors.file) {
+                importErrors.value = Array.isArray(errors.file) ? errors.file : [errors.file as string];
+            } else if (errors.error) {
+                importErrors.value = [errors.error as string];
+            } else {
+                importErrors.value = ['An unknown error occurred during import'];
+            }
+
+            // If there are parsing errors in the response
+            if (errors.parsing_errors) {
+                const parsingErrors = errors.parsing_errors as Record<string, string[]>;
+                for (const row in parsingErrors) {
+                    importErrors.value.push(`Row ${row}: ${parsingErrors[row].join(', ')}`);
+                }
+            }
+        },
+    });
+};
+
+const openImportAssignmentModal = (projectId: string, projectName: string) => {
+    currentProjectId.value = projectId;
+    currentProjectName.value = projectName;
+    showImportAssignmentModal.value = true;
+    assignmentImportFile.value = null;
+    importAssignmentErrors.value = [];
+};
+
+const closeImportAssignmentModal = () => {
+    showImportAssignmentModal.value = false;
+    assignmentImportFile.value = null;
+    importAssignmentErrors.value = [];
+};
+
+const handleAssignmentFileInput = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+        assignmentImportFile.value = input.files[0];
+    } else {
+        assignmentImportFile.value = null;
+    }
+};
+
+const importAssignments = () => {
+    if (!assignmentImportFile.value || !currentProjectId.value) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Please select a file to import',
+            icon: 'error',
+            confirmButtonColor: '#ef4444',
+        });
+        return;
+    }
+
+    isImportingAssignments.value = true;
+    importAssignmentErrors.value = [];
+
+    // Create form data
+    const formData = new FormData();
+    formData.append('file', assignmentImportFile.value);
+    formData.append('project_id', currentProjectId.value);
+
+    // Send to server
+    router.post('/assignments/import', formData, {
+        onSuccess: () => {
+            isImportingAssignments.value = false;
+            closeImportAssignmentModal();
+            Swal.fire({
+                title: 'Success!',
+                text: 'Assignments imported successfully',
+                icon: 'success',
+                confirmButtonColor: '#6366f1',
+            });
+            // Refresh the page to show updated assignments
+            router.visit(window.location.pathname, { replace: true });
+        },
+        onError: (errors) => {
+            isImportingAssignments.value = false;
+
+            if (errors.file) {
+                importAssignmentErrors.value = Array.isArray(errors.file) ? errors.file : [errors.file as string];
+            } else if (errors.error) {
+                importAssignmentErrors.value = [errors.error as string];
+            } else {
+                importAssignmentErrors.value = ['An unknown error occurred during import'];
+            }
+
+            // If there are parsing errors in the response
+            if (errors.parsing_errors) {
+                const parsingErrors = errors.parsing_errors as Record<string, string[]>;
+                for (const row in parsingErrors) {
+                    importAssignmentErrors.value.push(`Row ${row}: ${parsingErrors[row].join(', ')}`);
+                }
+            }
+        },
+    });
+};
+
 const deleteProject = (id: string) => {
     Swal.fire({
         title: 'Delete Project?',
@@ -353,7 +535,10 @@ const formatCurrency = (value: string | undefined) => {
                         <Link href="/projects/create"> <CirclePlus class="mr-1" /> Create </Link>
                     </Button>
                     <Button as-child size="sm" class="bg-green-500 text-white hover:bg-green-700">
-                        <Link href="/projects/export" target="_blank"> <Printer class="mr-1" /> Print </Link>
+                        <Link href="/projects/export" target="_blank"> <FolderInput class="mr-1" /> Print </Link>
+                    </Button>
+                    <Button size="sm" class="bg-blue-500 text-white hover:bg-blue-700" @click="openImportModal">
+                        <FolderOutput class="mr-1" /> Import Excel
                     </Button>
                 </div>
                 <div class="relative">
@@ -371,6 +556,9 @@ const formatCurrency = (value: string | undefined) => {
                                 <TableHead class="w-10"></TableHead>
                                 <TableHead class="cursor-pointer" @click="sortBy('project_name')">
                                     Project {{ getSortIcon('project_name') }}
+                                </TableHead>
+                                <TableHead class="cursor-pointer" @click="sortBy('project_id')">
+                                    Project ID {{ getSortIcon('project_id') }}
                                 </TableHead>
                                 <TableHead class="cursor-pointer" @click="sortBy('start_date')"> Start {{ getSortIcon('start_date') }} </TableHead>
                                 <TableHead class="cursor-pointer" @click="sortBy('lokasi')"> Location {{ getSortIcon('lokasi') }} </TableHead>
@@ -390,6 +578,7 @@ const formatCurrency = (value: string | undefined) => {
                                         </Button>
                                     </TableCell>
                                     <TableCell class="font-medium">{{ project.project_name }}</TableCell>
+                                    <TableCell>{{ project.project_id }}</TableCell>
                                     <TableCell>{{ formatDate(project.start_date) }}</TableCell>
                                     <TableCell>{{ project.settings?.lokasi ?? '-' }}</TableCell>
                                     <TableCell>{{ formatCurrency(project.settings?.cost) }}</TableCell>
@@ -416,24 +605,36 @@ const formatCurrency = (value: string | undefined) => {
                                 </TableRow>
                                 <!-- Assignments dropdown section -->
                                 <TableRow v-if="expandedProjects[project.id]" class="bg-gray-50 dark:bg-gray-900">
-                                    <TableCell colspan="8" class="p-0">
+                                    <TableCell colspan="9" class="p-0">
                                         <div class="p-4">
+                                            <!-- Find this section in the template and modify it -->
                                             <div class="mb-4 flex items-center justify-between">
                                                 <h3 class="font-semibold">Project Assignments</h3>
-                                                <Button
-                                                    size="sm"
-                                                    class="bg-indigo-500 text-white hover:bg-indigo-700"
-                                                    @click="openCreateModal(project.id)"
-                                                >
-                                                    <PlusCircle class="mr-1 h-4 w-4" />
-                                                    Add Assignment
-                                                </Button>
+                                                <div class="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        class="bg-indigo-500 text-white hover:bg-indigo-700"
+                                                        @click="openCreateModal(project.id)"
+                                                    >
+                                                        <PlusCircle class="mr-1 h-4 w-4" />
+                                                        Add Assignment
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        class="bg-blue-500 text-white hover:bg-blue-700"
+                                                        @click="openImportAssignmentModal(project.id, project.project_name)"
+                                                    >
+                                                        <FolderOutput class="mr-1 h-4 w-4" />
+                                                        Import
+                                                    </Button>
+                                                </div>
                                             </div>
                                             <div class="rounded-lg border">
                                                 <Table>
                                                     <TableHeader>
                                                         <TableRow>
                                                             <TableHead>Employee</TableHead>
+                                                            <TableHead>Project ID</TableHead>
                                                             <TableHead>Start Date</TableHead>
                                                             <TableHead>End Date</TableHead>
                                                             <TableHead>Notes</TableHead>
@@ -444,6 +645,7 @@ const formatCurrency = (value: string | undefined) => {
                                                     <TableBody>
                                                         <TableRow v-for="assignment in getProjectAssignments(project.id)" :key="assignment.id">
                                                             <TableCell>{{ assignment.employee?.name ?? 'Unknown Employee' }}</TableCell>
+                                                            <TableCell>{{ assignment.assignments_id ?? 'Unknown ID' }}</TableCell>
                                                             <TableCell>{{ formatDate(assignment.start_date) }}</TableCell>
                                                             <TableCell>{{ formatDate(assignment.end_date) }}</TableCell>
                                                             <TableCell>{{ assignment.notes ?? '-' }}</TableCell>
@@ -488,7 +690,7 @@ const formatCurrency = (value: string | undefined) => {
                                 </TableRow>
                             </template>
                             <TableRow v-if="paginatedProjects.length === 0">
-                                <TableCell colspan="8" class="py-4 text-center">No projects found</TableCell>
+                                <TableCell colspan="9" class="py-4 text-center">No projects found</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
@@ -584,8 +786,10 @@ const formatCurrency = (value: string | undefined) => {
                     <div class="grid grid-cols-4 items-center gap-4">
                         <Label for="attachment" class="text-right">Attachment</Label>
                         <div class="col-span-3">
-                            <Input id="attachment" type="file" @change="handleFileInput" />
-                            <p v-if="formErrors['attachment']" class="mt-1 text-sm text-red-500">{{ formErrors['attachment'] }}</p>
+                            <Input id="attachment" type="file" accept=".pdf" @change="handleFileInput" />
+                            <p v-if="formErrors['attachment']" class="mt-1 text-sm text-red-500">
+                                {{ formErrors['attachment'] }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -649,9 +853,11 @@ const formatCurrency = (value: string | undefined) => {
                     <div class="grid grid-cols-4 items-center gap-4">
                         <Label for="edit-attachment" class="text-right">Attachment</Label>
                         <div class="col-span-3">
-                            <Input id="edit-attachment" type="file" @change="handleFileInput" />
+                            <Input id="edit-attachment" type="file" accept=".pdf" @change="handleFileInput" />
                             <p class="mt-1 text-xs text-gray-500">Upload a new file to replace the existing attachment.</p>
-                            <p v-if="formErrors['attachment']" class="mt-1 text-sm text-red-500">{{ formErrors['attachment'] }}</p>
+                            <p v-if="formErrors['attachment']" class="mt-1 text-sm text-red-500">
+                                {{ formErrors['attachment'] }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -661,5 +867,149 @@ const formatCurrency = (value: string | undefined) => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <!-- Add this alongside your other modals -->
+        <Dialog :open="showImportAssignmentModal" @update:open="showImportAssignmentModal = $event">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Import Assignments for {{ currentProjectName }}</DialogTitle>
+                </DialogHeader>
+                <div class="grid gap-4 py-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        Upload Excel file (.xlsx, .csv) with Assignment data. Make sure the file follows the required format.
+                        <!-- <span class="font-medium">{{ currentProjectId }}</span> -->
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <Input id="assignment-import" type="file" accept=".xlsx,.csv,.xls" @change="handleAssignmentFileInput" />
+                    </div>
+                    <div v-if="importAssignmentErrors.length > 0" class="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
+                        <ul class="list-disc space-y-1 pl-5 text-sm text-red-700 dark:text-red-300">
+                            <li v-for="(error, index) in importAssignmentErrors" :key="index">{{ error }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mb-4 rounded-md border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-700 dark:bg-yellow-900/20">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Required Format</h3>
+                            <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                <p>Your Excel file should contain these columns in order:</p>
+                                <ol class="mt-1 list-decimal pl-5">
+                                    <li>Project Name</li>
+                                    <li>Client Company</li>
+                                    <li>Start Date</li>
+                                    <li>Status</li>
+                                    <li>Lokasi</li>
+                                    <li>Cost</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button type="button" variant="outline" @click="closeImportAssignmentModal">Cancel</Button>
+                    <Button type="button" @click="importAssignments" :disabled="isImportingAssignments || !assignmentImportFile">
+                        <span
+                            v-if="isImportingAssignments"
+                            class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+                        ></span>
+                        {{ isImportingAssignments ? 'Importing...' : 'Import' }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Import Excel Modal -->
+        <div v-if="showImportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-xl font-bold">Import Project</h2>
+                    <button @click="closeImportModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        &times;
+                    </button>
+                </div>
+
+                <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+                    Upload Excel file (.xlsx, .csv) with project data. Make sure the file follows the required format.
+                </p>
+
+                <div class="mb-4">
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Excel File </label>
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="file"
+                            @change="handleFileChange"
+                            accept=".xlsx,.csv,.xls"
+                            class="block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-500 file:px-4 file:py-2 file:text-sm file:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                        />
+                        <Upload v-if="!importFile" class="h-5 w-5 text-gray-500" />
+                        <span v-else class="text-sm text-gray-600 dark:text-gray-300">
+                            {{ importFile.name }}
+                        </span>
+                    </div>
+                </div>
+
+                <div v-if="importErrors.length > 0" class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                    <div class="flex">
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">Import errors</h3>
+                            <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                                <ul class="list-disc space-y-1 pl-5">
+                                    <li v-for="(error, index) in importErrors" :key="index">{{ error }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 rounded-md border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-700 dark:bg-yellow-900/20">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Required Format</h3>
+                            <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                <p>Your Excel file should contain these columns in order:</p>
+                                <ol class="mt-1 list-decimal pl-5">
+                                    <li>Employee Name</li>
+                                    <li>Start Date</li>
+                                    <li>End Date</li>
+                                    <li>Notes</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <Button variant="outline" @click="closeImportModal" :disabled="isImporting"> Cancel </Button>
+                    <Button @click="submitImport" class="bg-indigo-500 text-white hover:bg-indigo-700" :disabled="isImporting || !importFile">
+                        <span
+                            v-if="isImporting"
+                            class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+                        ></span>
+                        {{ isImporting ? 'Importing...' : 'Import' }}
+                    </Button>
+                </div>
+            </div>
+        </div>
     </AppLayout>
 </template>

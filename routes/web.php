@@ -54,10 +54,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('/projects/export', [ProjectController::class, 'export'])->name('projects.export');
+    Route::post('/projects/import', [ProjectController::class, 'import'])->name('projects.import');
 
     Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
     Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
     Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+    Route::post('/assignments/import', [AssignmentController::class, 'import'])->name('assignments.import');
 
     Route::get('/activitylog', [ActivityLogController::class, 'index'])->name('activitylog.store');
 });
