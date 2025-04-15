@@ -307,7 +307,7 @@ const deleteEmployee = (id: string) => {
                                                 : 'rounded-full bg-orange-500 px-3 py-1 text-white'
                                         "
                                     >
-                                        {{ employee.is_available ? 'Avaible' : 'On Duty' }}
+                                        {{ employee.is_available ? 'Avaible' : 'Unavaible' }}
                                     </span>
                                 </TableCell>
                                 <TableCell class="flex justify-center gap-2">

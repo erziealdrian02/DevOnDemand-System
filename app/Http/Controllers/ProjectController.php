@@ -132,6 +132,7 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
+        // dd($project);
         return Inertia::render('Project/Edit', [
             'project' => $project,
             'clients' => Client::select('id', 'company_name')->get(),
@@ -158,83 +159,21 @@ class ProjectController extends Controller
         $project->client_id = $validatedData['client_id'];
         $project->project_name = $validatedData['project_name'];
         $project->start_date = $validatedData['start_date'];
-        $project->is_approved = $validatedData['is_approved'] ?? false;
+        $project->is_approved = $request->input('is_approved') == '1' ? true : false;
         
-        // Handle settings - if it's a string (JSON), use it directly
-        if (isset($validatedData['settings'])) {
-            $project->settings = is_array($validatedData['settings'])
-                ? json_encode($validatedData['settings'])
-                : $validatedData['settings'];
+        // Handle settings - parse it if it's a JSON string
+        if ($request->has('settings')) {
+            $settings = $request->input('settings');
+            $project->settings = is_string($settings) ? $settings : json_encode($settings);
         }
         
         // Save the project
         $project->save();
 
-        // Handle deleted assignments if any
-        if ($request->has('deleted_assignments')) {
-            $deletedAssignments = json_decode($request->input('deleted_assignments'), true);
-            if (is_array($deletedAssignments) && count($deletedAssignments) > 0) {
-                Assignment::whereIn('id', $deletedAssignments)->delete();
-            }
-        }
-
-        // Handle additional items if project is approved
-        if ($request->input('is_approved') == '1' && $request->has('additionalItems')) {
-            $additionalItems = json_decode($request->input('additionalItems'), true);
-            
-            foreach ($additionalItems as $item) {
-                if (isset($item['assignment_id'])) {
-                    // Update existing assignment
-                    $assignment = Assignment::find($item['assignment_id']);
-                    if ($assignment) {
-                        $assignment->employee_id = $item['employee_id'];
-                        $assignment->start_date = $item['start_date'];
-                        $assignment->end_date = $item['end_date'] ?? null;
-                        $assignment->notes = $item['notes'] ?? null;
-                        
-                        // Handle file upload
-                        $attachmentKey = "attachment_" . $item['id'];
-                        if ($request->hasFile($attachmentKey)) {
-                            // Delete old file if exists
-                            if ($assignment->attachment && Storage::disk('public')->exists($assignment->attachment)) {
-                                Storage::disk('public')->delete($assignment->attachment);
-                            }
-                            
-                            $file = $request->file($attachmentKey);
-                            $fileName = time() . '_' . $file->getClientOriginalName();
-                            $filePath = $file->storeAs('attachments', $fileName, 'public');
-                            $assignment->attachment = $filePath;
-                        }
-                        
-                        $assignment->save();
-                    }
-                } else {
-                    // Create a new assignment
-                    $assignment = new Assignment();
-                    $assignment->id = Str::uuid();
-                    $assignment->project_id = $project->id;
-                    $assignment->employee_id = $item['employee_id'];
-                    $assignment->start_date = $item['start_date'];
-                    $assignment->end_date = $item['end_date'] ?? null;
-                    $assignment->notes = $item['notes'] ?? null;
-                    
-                    // Handle file upload
-                    $attachmentKey = "attachment_" . $item['id'];
-                    if ($request->hasFile($attachmentKey)) {
-                        $file = $request->file($attachmentKey);
-                        $fileName = time() . '_' . $file->getClientOriginalName();
-                        $filePath = $file->storeAs('attachments', $fileName, 'public');
-                        $assignment->attachment = $filePath;
-                    }
-                    
-                    $assignment->save();
-                }
-            }
-        }
-
         return redirect()->route('projects.index')
             ->with('success', 'Project updated successfully!');
     }
+
 
     public function destroy(Project $project)
     {
